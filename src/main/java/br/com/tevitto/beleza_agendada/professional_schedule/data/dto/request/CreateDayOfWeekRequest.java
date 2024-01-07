@@ -1,8 +1,11 @@
 package br.com.tevitto.beleza_agendada.professional_schedule.data.dto.request;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,8 +16,13 @@ import lombok.Setter;
 public class CreateDayOfWeekRequest {
 
     private int day;
-    private String initTime;
-    private String endTime;
+    
+    @JsonFormat(pattern = "HH-mm-ss")
+    private LocalTime initTime;
+
+    @JsonFormat(pattern = "HH-mm-ss")
+    private LocalTime endTime;
+
     private List<CreateBreaktimeRequest> breaktime;
     
 }

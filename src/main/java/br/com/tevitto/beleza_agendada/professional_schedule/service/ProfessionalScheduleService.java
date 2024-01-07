@@ -4,8 +4,9 @@ import br.com.tevitto.beleza_agendada.professional_schedule.data.dto.request.Cre
 import br.com.tevitto.beleza_agendada.professional_schedule.data.dto.response.ProfessionalScheduleCreatedResponse;
 import br.com.tevitto.beleza_agendada.professional_schedule.data.model.ProfessionalSchedule;
 import br.com.tevitto.beleza_agendada.professional_schedule.execeptions.BusinessException;
-import br.com.tevitto.beleza_agendada.professional_schedule.repository.*;
+import br.com.tevitto.beleza_agendada.professional_schedule.repository.ProfessionalScheduleRepository;
 import br.com.tevitto.beleza_agendada.professional_schedule.service.async.AsyncProfessionalScheduleService;
+import lombok.extern.log4j.Log4j2;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,34 +15,15 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 @Service
+@Log4j2
 public class ProfessionalScheduleService {
-
-    Logger logger = LogManager.getLogger(ProfessionalScheduleService.class);
-
-    @Autowired
-    private BreakTimeRepository breakTimeRepository;
-
-    @Autowired
-    private DayOfWeekAuditRepository dayOfWeekAuditRepository;
-
-    @Autowired
-    private DayOfWeekItemRepository dayOfWeekItemRepository;
 
     @Autowired
     private ProfessionalScheduleRepository professionalScheduleRepository;
-
-    @Autowired
-    private ScheduleItemAuditRepository scheduleItemAuditRepository;
-
-    @Autowired
-    private ScheduleItemRepository scheduleItemRepository;
 
     @Autowired
     private AsyncProfessionalScheduleService asyncService;
@@ -52,11 +34,9 @@ public class ProfessionalScheduleService {
 
     @Transactional
     public ProfessionalScheduleCreatedResponse create(CreateProfessionalScheduleRequest request) {
-        logger.info("Creating Professinal Scheduler with request {}", request);
+        log.info("Creating Professinal Scheduler with request {}", request);
 
         validCreate(request);
-
-        TimeZone timeZone = TimeZone.getDefault();
 
         ProfessionalSchedule forSavSchedule = ProfessionalSchedule.builder()
                 .professional_id(request.getProfessional_id())
@@ -69,22 +49,16 @@ public class ProfessionalScheduleService {
         ProfessionalSchedule professionalSchedule = professionalScheduleRepository
                 .save(forSavSchedule);
 
-        Date endDate = request.getEndDate();
-        Calendar startCalendar = Calendar.getInstance(timeZone);
-        startCalendar.setTime(request.getInitDate());
-
-        Calendar endCalendar = Calendar.getInstance(timeZone);
-        endCalendar.setTime(request.getEndDate());
-
-        asyncService.asyncCreateDaysProfessionalSchedule(startCalendar, endCalendar, request.getDaysOfWeek(),
-                professionalSchedule, endDate, timeZone);
+        asyncService.asyncCreateDaysProfessionalSchedule(request.getInitDate(), request.getEndDate(), request.getDaysOfWeek(),
+                professionalSchedule);
 
         return ProfessionalScheduleCreatedResponse.builder()
                 .created_at(professionalSchedule.getCreateDate())
                 .schedule_id(professionalSchedule.getId())
-                .initDate(startCalendar.getTime())
-                .endDate(endCalendar.getTime())
+                .initDate(request.getInitDate())
+                .endDate(request.getEndDate())
                 .build();
+
 
     }
 

@@ -1,24 +1,18 @@
 package br.com.tevitto.beleza_agendada.professional_schedule.data.model;
 
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-
-import org.hibernate.annotations.GenericGenerator;
-
 import br.com.tevitto.beleza_agendada.professional_schedule.data.enums.DayOfWeekType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -32,17 +26,19 @@ public class DayOfWeekItem {
     @Column(name = "ID")
     private UUID id;
 
-    private Date initTime;
-    
-    private Date endTime;
-    
-    @OneToMany
+    private LocalDate date;
+
+    private LocalTime initTime;
+
+    private LocalTime endTime;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<BreakTime> breakTime;
 
     @Enumerated
-    private DayOfWeekType dayOfWeek;
+    private DayOfWeek dayOfWeek;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private ProfessionalSchedule professional_schedule;
 
 }

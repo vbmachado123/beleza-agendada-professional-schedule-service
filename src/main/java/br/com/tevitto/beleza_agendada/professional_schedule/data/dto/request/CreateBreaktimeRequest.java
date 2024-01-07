@@ -1,17 +1,22 @@
 package br.com.tevitto.beleza_agendada.professional_schedule.data.dto.request;
 
-import java.util.Date;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.LocalTime;
 
 @Getter
 @Setter
 @Builder
 public class CreateBreaktimeRequest {
-    
-    private String initTime;
-    private String endTime;
+
+    @JsonFormat(pattern = "HH-mm-ss")
+    private LocalTime initTime;
+
+    @JsonFormat(pattern = "HH-mm-ss")
+    private LocalTime endTime;
+
     private String description;
 }
