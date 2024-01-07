@@ -1,19 +1,5 @@
 package br.com.tevitto.beleza_agendada.professional_schedule.service.async;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
-
 import br.com.tevitto.beleza_agendada.professional_schedule.data.dto.request.CreateBreaktimeRequest;
 import br.com.tevitto.beleza_agendada.professional_schedule.data.dto.request.CreateDayOfWeekRequest;
 import br.com.tevitto.beleza_agendada.professional_schedule.data.enums.DayOfWeekType;
@@ -21,12 +7,18 @@ import br.com.tevitto.beleza_agendada.professional_schedule.data.model.BreakTime
 import br.com.tevitto.beleza_agendada.professional_schedule.data.model.DayOfWeekItem;
 import br.com.tevitto.beleza_agendada.professional_schedule.data.model.ProfessionalSchedule;
 import br.com.tevitto.beleza_agendada.professional_schedule.data.model.ScheduleItem;
-import br.com.tevitto.beleza_agendada.professional_schedule.repository.BreakTimeRepository;
-import br.com.tevitto.beleza_agendada.professional_schedule.repository.DayOfWeekAuditRepository;
-import br.com.tevitto.beleza_agendada.professional_schedule.repository.DayOfWeekItemRepository;
-import br.com.tevitto.beleza_agendada.professional_schedule.repository.ProfessionalScheduleRepository;
-import br.com.tevitto.beleza_agendada.professional_schedule.repository.ScheduleItemAuditRepository;
-import br.com.tevitto.beleza_agendada.professional_schedule.repository.ScheduleItemRepository;
+import br.com.tevitto.beleza_agendada.professional_schedule.repository.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Service
 public class AsyncProfessionalScheduleService {
@@ -51,10 +43,11 @@ public class AsyncProfessionalScheduleService {
     private ScheduleItemRepository scheduleItemRepository;
 
     @Async
-    public void asyncCreateProfessionalSchedule(Calendar startCalendar, Calendar endDate,
-            List<CreateDayOfWeekRequest> days,
-            ProfessionalSchedule professionalSchedule, Date time,
-            TimeZone timeZone) {
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void asyncCreateDaysProfessionalSchedule(Calendar startCalendar, Calendar endDate,
+                                                    List<CreateDayOfWeekRequest> days,
+                                                    ProfessionalSchedule professionalSchedule, Date time,
+                                                    TimeZone timeZone) {
 
         logger.info("RUN IN BACKGROUND, CREATE SCHEDULEITEMS: {}", professionalSchedule.getId());
         while (!startCalendar.after(endDate)) {
@@ -114,19 +107,19 @@ public class AsyncProfessionalScheduleService {
                 .professional_schedule(professionalSchedule)
                 .build();
 
+        dayOfWeekItemRepository.save(dayOfWeekItem);
+
+
         createScheduleItems(dayOfWeekItem, professionalSchedule);
 
         if (day.getBreaktime() != null) {
             List<BreakTime> breakTimes = createBreakTimes(day.getBreaktime(), dayOfWeekItem, timeZone);
             dayOfWeekItem.setBreakTime(breakTimes);
         }
-
-        dayOfWeekItemRepository.save(dayOfWeekItem);
-
     }
 
     private List<BreakTime> createBreakTimes(List<CreateBreaktimeRequest> breaktimeRequests,
-            DayOfWeekItem dayOfWeekItem, TimeZone timeZone) {
+                                             DayOfWeekItem dayOfWeekItem, TimeZone timeZone) {
         List<BreakTime> breakTimes = new ArrayList<>();
 
         for (CreateBreaktimeRequest breaktimeRequest : breaktimeRequests) {
@@ -171,24 +164,23 @@ public class AsyncProfessionalScheduleService {
 
     private DayOfWeekType convertDayOfWeekType(int i) {
         switch (i) {
-            case 0:
-                return DayOfWeekType.MONDAY;
             case 1:
-                return DayOfWeekType.SUNDAY;
+                return DayOfWeekType.MONDAY;
             case 2:
-                return DayOfWeekType.TUESDAY;
+                return DayOfWeekType.SUNDAY;
             case 3:
-                return DayOfWeekType.WEDNESDAY;
+                return DayOfWeekType.TUESDAY;
             case 4:
-                return DayOfWeekType.THURSDAY;
+                return DayOfWeekType.WEDNESDAY;
             case 5:
-                return DayOfWeekType.FRIDAY;
+                return DayOfWeekType.THURSDAY;
             case 6:
+                return DayOfWeekType.FRIDAY;
+            case 7:
                 return DayOfWeekType.SATURDAY;
             default:
                 throw new RuntimeException("DAY NOT FOUND: " + i);
         }
-        // return DayOfWeekType.MONDAY;
     }
 
 }
