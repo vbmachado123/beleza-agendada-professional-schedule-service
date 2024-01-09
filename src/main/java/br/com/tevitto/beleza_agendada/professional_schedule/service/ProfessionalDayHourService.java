@@ -1,9 +1,13 @@
 package br.com.tevitto.beleza_agendada.professional_schedule.service;
 
-import br.com.tevitto.beleza_agendada.professional_schedule.data.model.ProfessionalDay;
 import br.com.tevitto.beleza_agendada.professional_schedule.data.model.Professional;
+import br.com.tevitto.beleza_agendada.professional_schedule.data.model.ProfessionalDay;
 import br.com.tevitto.beleza_agendada.professional_schedule.data.model.ProfessionalDayHour;
+import br.com.tevitto.beleza_agendada.professional_schedule.data.model.QProfessionalDayHour;
 import br.com.tevitto.beleza_agendada.professional_schedule.repository.ProfessionalDayHourRepository;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,6 +15,10 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 @Log4j2
@@ -18,6 +26,9 @@ public class ProfessionalDayHourService {
 
     @Autowired
     private ProfessionalDayHourRepository professionalDayHourRepository;
+
+    @Autowired
+    private ProfessionalDayService professionalDayService;
 
     public ArrayList<ProfessionalDayHour> createScheduleItems(ProfessionalDay professionalDay, Professional professional) {
 
@@ -45,5 +56,15 @@ public class ProfessionalDayHourService {
                 .build();
 
         return professionalDayHourRepository.save(professionalDayHour);
+    }
+
+    public List<ProfessionalDayHour> getDayHours(String idProfessional, UUID idDay) {
+        ProfessionalDay professionalDay = professionalDayService.getById(idDay);
+
+        BooleanExpression expression = QProfessionalDayHour.professionalDayHour.professional_id.eq(idProfessional);
+        expression = expression.and(QProfessionalDayHour.professionalDayHour.date.eq(professionalDay.getDate()));
+        OrderSpecifier<LocalDate> orderSpecifier = new OrderSpecifier(Order.ASC, QProfessionalDayHour.professionalDayHour.dateTime);
+
+        return StreamSupport.stream(professionalDayHourRepository.findAll(expression, orderSpecifier).spliterator(), false).collect(Collectors.toList());
     }
 }

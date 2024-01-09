@@ -1,8 +1,8 @@
 package br.com.tevitto.beleza_agendada.professional_schedule.service;
 
 import br.com.tevitto.beleza_agendada.professional_schedule.data.dto.request.CreateProfessionalDayBreakTimeRequest;
-import br.com.tevitto.beleza_agendada.professional_schedule.data.model.ProfessionalDayBreakTime;
 import br.com.tevitto.beleza_agendada.professional_schedule.data.model.ProfessionalDay;
+import br.com.tevitto.beleza_agendada.professional_schedule.data.model.ProfessionalDayBreakTime;
 import br.com.tevitto.beleza_agendada.professional_schedule.repository.ProfessionalDayBreakTimeRepository;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ public class ProfessionalDayBreakTimeService {
         for (CreateProfessionalDayBreakTimeRequest breaktimeRequest : breaktimeRequests) {
             ProfessionalDayBreakTime professionalDayBreakTime = ProfessionalDayBreakTime.builder()
                     .initTime(breaktimeRequest.getInitTime())
-                    .endTime(breaktimeRequest.getInitTime())
+                    .endTime(breaktimeRequest.getEndTime())
                     .professionalDay(professionalDay)
                     .description(breaktimeRequest.getDescription())
                     .build();

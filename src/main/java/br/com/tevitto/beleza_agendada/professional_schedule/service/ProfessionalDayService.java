@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -28,6 +29,13 @@ public class ProfessionalDayService {
     @Autowired
     private ProfessionalDayRepository professionalDayRepository;
 
+
+    public ProfessionalDay getById(UUID id) {
+
+        return professionalDayRepository.findById(id).orElseThrow(() -> {
+            throw new RuntimeException("Dia não encontrado");
+        });
+    }
 
     public List<ProfessionalDay> list(String idProfessional, YearMonth month) {
         OrderSpecifier<LocalDate> orderSpecifier = new OrderSpecifier(Order.ASC, QProfessionalDay.professionalDay.date);
