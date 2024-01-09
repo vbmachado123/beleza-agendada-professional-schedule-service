@@ -18,23 +18,6 @@ import java.util.UUID;
 @Setter
 @MappedSuperclass
 public class AbstractEntityBase {
-    @Id
-    @GeneratedValue(generator = "uuid-hibernate-generator")
-    @GenericGenerator(name = "uuid-hibernate-generator", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "ID")
-    private UUID id;
-
-    @Column(name = "STATUS", nullable = false)
-    private Integer status;
-
-    @Column(name = "STATUS_NAME", length = 255)
-    private String statusName;
-
-    @Column(name = "STATUS_REASON", length = 255)
-    private String statusReason;
-
-    @Column(name = "DELETED", nullable = false)
-    private Boolean deleted;
 
     @Column(name = "CREATE_DATE", updatable = false, insertable = true)
     @CreationTimestamp
